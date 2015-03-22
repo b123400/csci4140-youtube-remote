@@ -3,10 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node lib/server.js",
-    "prepublish": "./build.sh"
+    "start": "node lib/server.js"
   },
-  "main": "server.js",
+  "main": "lib/server.js",
   "dependencies": {
     "body-parser": "~1.10.1",
     "express": "~4.10.6",

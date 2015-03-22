@@ -19,5 +19,5 @@ button.onclick = function() {
 
 document.body.appendChild(button);
 
-declare var io: ()=> any;
-var socket = io();
+declare var io: (string)=> any;
+var socket = io('ws://' + window.location.hostname + ':8000/' );
