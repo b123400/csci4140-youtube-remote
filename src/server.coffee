@@ -4,7 +4,7 @@ http = require('http').Server app
 io = require('socket.io') http
 
 serverPort = process.env.OPENSHIFT_NODEJS_PORT || 8000
-serverIpAddress = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1'
+serverIpAddress = process.env.OPENSHIFT_NODEJS_IP || 'localhost'
 
 app.get '/', (req, res)->
   res.send '<h1>Hello world</h1>'
@@ -18,4 +18,4 @@ io.on 'connection', (socket)->
   console.log 'a user connected'
 
 http.listen serverPort, serverIpAddress, ->
-  console.log 'listening on *:3000'
+  console.log 'listening on *:3000', arguments
