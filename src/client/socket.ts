@@ -1,23 +1,31 @@
-module Sayings {
-  export class Greeter {
-    greeting: string;
-    constructor(message: string) {
-      this.greeting = message;
-    }
-    greet() {
-      return "Hello, " + this.greeting;
-    }
-  }
-}
-var greeter = new Sayings.Greeter("world");
-
-var button = document.createElement('button');
-button.textContent = "Say Hello";
-button.onclick = function() {
-  alert(greeter.greet());
+interface Socket {
+  id : string;
+  on(event: string, listener: Function): Socket;
+  emit(name, ...arguments: any[]): Socket;
 };
 
-document.body.appendChild(button);
+declare var io: (url?:string)=> Socket;
+declare var playList: {};
 
-declare var io: (string)=> any;
-var socket = io('ws://' + window.location.hostname + ':8000/' );
+module SocketManager {
+
+  export class Server {
+    io: Socket;
+    constructor(url: string) {
+      this.io = io(url);
+      this.setupEventListener(this.io);
+    }
+
+    setupEventListener(io:Socket) {
+      io.on('gotRequest', function(){
+        io.emit('replyRequest', playList);
+      });
+    }
+
+  }
+}
+
+var server;
+document.addEventListener('load', function(){
+  server = new SocketManager.Server('ws://' + window.location.hostname + ':8000/');
+});

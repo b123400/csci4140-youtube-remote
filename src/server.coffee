@@ -18,4 +18,4 @@ io.on 'connection', (socket)->
   console.log 'a user connected'
 
 http.listen serverPort, serverIpAddress, ->
-  console.log 'listening on *:3000', arguments
+  console.log 'listening on *:8000', arguments
