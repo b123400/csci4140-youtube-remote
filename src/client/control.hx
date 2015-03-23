@@ -4,7 +4,8 @@ extern class YoutubeAPI {
   static var shared:YoutubeAPI;
   var currentVideoId: String;
   function elementToInsert(): js.html.Element;
-  function play(?videoID:String): Void;
+  function play(?videoId:String): Void;
+  function load(videoId:String): Void;
   function pause(): Void;
   function stop(): Void;
   function rewind(): Void;
@@ -22,6 +23,7 @@ class ArrayExtension {
   }
 }
 
+@:expose("Control")
 class Control {
 
   public static var playlist : PlayList = new PlayList();
@@ -109,6 +111,7 @@ class StopButton extends Button {
 
   override function clicked():Void {
     YoutubeAPI.shared.stop();
+    YoutubeAPI.shared.load(Control.playlist.videos[0].videoID);
   }
 }
 
@@ -201,6 +204,10 @@ class Video {
   function play():Void {
     YoutubeAPI.shared.play(videoID);
   }
+
+  function toJSON() {
+    return this.videoID;
+  }
 }
 
 class PlayList {
@@ -212,21 +219,40 @@ class PlayList {
     this.element = js.Browser.window.document.createElement("div");
   }
 
+  public function addVideoByID(videoID:String):Void {
+    var newVideo = new Video(videoID, "title");
+    this.addVideo(newVideo);
+  }
+
   public function addVideo(newVideo:Video):Void {
     this.videos.push(newVideo);
     this.reloadElement();
+    this.playlistUpdated();
   }
 
-  function removeVideo(thisVideo:Video):Void {
-    var index = this.videos.indexOf(thisVideo);
-    this.videos.splice(index, 1);
+  public function importVideos(videoIDs:Array<String>) {
+    this.videos = videoIDs.map(function(videoID){
+      return new Video(videoID, "title");
+    });
     this.reloadElement();
   }
 
+  public function removeVideo(thisVideo:Video):Void {
+    var index = this.videos.indexOf(thisVideo);
+    this.videos.splice(index, 1);
+    this.reloadElement();
+    this.playlistUpdated();
+  }
+
   function clearAllVideos():Void {
-    for (video in this.videos) {
-      this.removeVideo(video);
-    }
+    this.videos = [];
+    this.reloadElement();
+    this.playlistUpdated();
+  }
+
+  function playlistUpdated() {
+    var win = untyped js.Browser.window;
+    win.updateOthersPlaylist();
   }
 
   public function reloadElement():Void {
@@ -238,8 +264,7 @@ class PlayList {
     var okButton = js.Browser.window.document.createElement("button");
     okButton.innerHTML = "ok";
     okButton.addEventListener('click', function(){
-      var newVideo = new Video(input.value, "title");
-      this.addVideo(newVideo);
+      this.addVideoByID(input.value);
     });
     this.element.appendChild(input);
     this.element.appendChild(okButton);
@@ -254,5 +279,9 @@ class PlayList {
 
   public function currentVideo():Video {
     return this.videos[this.currentVideoIndex()];
+  }
+
+  public function toJSON() {
+    return this.videos;
   }
 }
