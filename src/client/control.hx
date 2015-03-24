@@ -14,6 +14,10 @@ extern class YoutubeAPI {
   function unmute(): Void;
 }
 
+extern class Socket {
+  function broadcastCommand(command:String, ?data:Dynamic):Void;
+}
+
 class ArrayExtension {
   static public function indexSatisfingCondition<T>(array:Array<T>, f:T->Bool):Int {
     for (i in 0...array.length) {
@@ -27,6 +31,7 @@ class ArrayExtension {
 class Control {
 
   public static var playlist : PlayList = new PlayList();
+  public static var buttons : Map<String, Button>;
 
   static function main() {
     js.Browser.window.addEventListener('load', function(e:js.html.Event):Void {
@@ -34,10 +39,23 @@ class Control {
     });
   }
 
+  public static function isDesktopMode():Bool {
+    return untyped js.Browser.window.document.body.offsetWidth >= 992;
+  }
+
+  public static function applyCommand(command:String) {
+    for (button in Control.buttons) {
+      if (button.command() == command) {
+        button.clicked(null);
+        break;
+      }
+    }
+  }
+
   public static function init(global) {
     var playlist = Control.playlist;
 
-    var buttons : Map<String, Button> = [
+    Control.buttons = [
       "play"        => new PlayButton(),
       "pause"       => new PauseButton(),
       "stop"        => new StopButton(),
@@ -48,14 +66,14 @@ class Control {
       "mute"        => new MuteButton(),
       "unmute"      => new UnmuteButton()
     ];
-    global.buttons = buttons;
+    global.buttons = Control.buttons;
 
     var wrapper = js.Browser.window.document.getElementsByTagName("body")[0];
     wrapper.appendChild(YoutubeAPI.shared.elementToInsert());
     
     var buttonWrapper = js.Browser.window.document.createElement("div");
     buttonWrapper.className = "buttons";
-    for (button in buttons) {
+    for (button in Control.buttons) {
       buttonWrapper.appendChild(button.element);
     }
     wrapper.appendChild(buttonWrapper);
@@ -69,14 +87,27 @@ class Button {
 
   public function new() {
     this.element = js.Browser.window.document.createElement("div");
-    this.element.addEventListener('click', this.clicked);
+    this.element.addEventListener('click', this.clickHandler);
   }
 
   function setDisplayText(text:String):Void {
     this.element.innerHTML = text;
   }
 
-  function clicked():Void {
+  function clickHandler(e:js.html.Event):Void {
+    if (Control.isDesktopMode()) {
+      this.clicked(e);
+    } else {
+      var client = cast(untyped js.Browser.window.client, Socket);
+      client.broadcastCommand(this.command());
+    }
+  }
+
+  public function command():String {
+    return "null";
+  }
+
+  public function clicked(e:js.html.Event):Void {
     // override me
   }
 }
@@ -87,7 +118,11 @@ class PlayButton extends Button {
     this.setDisplayText("Play");
   }
 
-  override function clicked():Void {
+  override function command():String {
+    return "play";
+  }
+
+  override function clicked(e:js.html.Event):Void {
     YoutubeAPI.shared.play();
   }
 }
@@ -98,7 +133,11 @@ class PauseButton extends Button {
     this.setDisplayText("Pause");
   }
 
-  override function clicked() {
+  override function command():String {
+    return "pause";
+  }
+
+  override function clicked(e:js.html.Event) {
     YoutubeAPI.shared.pause();
   }
 }
@@ -109,7 +148,11 @@ class StopButton extends Button {
     this.setDisplayText("Stop");
   }
 
-  override function clicked():Void {
+  override function command():String {
+    return "stop";
+  }
+
+  override function clicked(e:js.html.Event):Void {
     YoutubeAPI.shared.stop();
     YoutubeAPI.shared.load(Control.playlist.videos[0].videoID);
   }
@@ -121,7 +164,11 @@ class PreviousButton extends Button {
     this.setDisplayText("Previous");
   }
 
-  override function clicked():Void {
+  override function command():String {
+    return "previous";
+  }
+
+  override function clicked(e:js.html.Event):Void {
     var currentVideoIndex = Control.playlist.currentVideoIndex();
     var nextVideo = Control.playlist.videos[currentVideoIndex-1];
     if (nextVideo != null) {
@@ -136,7 +183,11 @@ class NextButton extends Button {
     this.setDisplayText("Next");
   }
 
-  override function clicked():Void {
+  override function command():String {
+    return "next";
+  }
+
+  override function clicked(e:js.html.Event):Void {
     var currentVideoIndex = Control.playlist.currentVideoIndex();
     var nextVideo = Control.playlist.videos[currentVideoIndex+1];
     if (nextVideo != null) {
@@ -151,7 +202,11 @@ class RewindButton extends Button {
     this.setDisplayText("Rewind");
   }
 
-  override function clicked():Void {
+  override function command():String {
+    return "rewind";
+  }
+
+  override function clicked(e:js.html.Event):Void {
     YoutubeAPI.shared.rewind();
   }
 }
@@ -162,7 +217,11 @@ class FastForwardButton extends Button {
     this.setDisplayText("Fast forward");
   }
 
-  override function clicked():Void {
+  override function command():String {
+    return "fastForward";
+  }
+
+  override function clicked(e:js.html.Event):Void {
     YoutubeAPI.shared.fastForward();
   }
 }
@@ -173,17 +232,26 @@ class MuteButton extends Button {
     this.setDisplayText("Mute");
   }
 
-  override function clicked():Void {
+  override function command():String {
+    return "mute";
+  }
+
+  override function clicked(e:js.html.Event):Void {
     YoutubeAPI.shared.mute();
   }
 }
+
 class UnmuteButton extends Button {
   public function new() {
     super();
     this.setDisplayText("Unmute");
   }
 
-  override function clicked():Void {
+  override function command():String {
+    return "unmute";
+  }
+
+  override function clicked(e:js.html.Event):Void {
     YoutubeAPI.shared.unmute();
   }
 }

@@ -1,4 +1,5 @@
 #!/bin/sh
+npm install
 mkdir ./lib
 
 ./node_modules/coffee-script/bin/coffee -bc -o ./lib ./src

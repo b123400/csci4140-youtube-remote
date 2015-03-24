@@ -7,6 +7,7 @@ interface Socket {
 declare var io: (url?:string)=> Socket;
 declare var Control : {
   playlist : Playlist
+  applyCommand(command:string):void;
 }
 
 interface Playlist {
@@ -46,6 +47,9 @@ module SocketManager {
       });
 
       io.on('updatePlaylist', (p)=>this.updatePlaylist(p));
+
+      ['play','pause','stop','next','previous','rewind','fastforward','mute','unmute']
+      .forEach (c=>io.on(c, ()=> Control.applyCommand(c)));
     }
 
     requestPlaylist():void {
@@ -60,18 +64,20 @@ module SocketManager {
     updateOthersPlaylist (playlist:Playlist):void {
       this.io.emit('updatePlaylist', playlist);
     }
+
+    broadcastCommand (command:string, data?:any) {
+      this.io.emit(command, data);
+    }
   }
 }
 
 var updateOthersPlaylist;
-(()=>{
-  var client;
-  window.addEventListener('load', ()=>{
-    client = new SocketManager.Client('ws://' + window.location.hostname + ':8000/');
-    client.requestPlaylist();
-  });
+var client;
+window.addEventListener('load', ()=>{
+  client = new SocketManager.Client('ws://' + window.location.hostname + ':8000/');
+  client.requestPlaylist();
+});
 
-  updateOthersPlaylist = ()=> {
-    client.updateOthersPlaylist(Control.playlist);
-  }
-})();
+updateOthersPlaylist = ()=> {
+  client.updateOthersPlaylist(Control.playlist);
+}

@@ -59,14 +59,6 @@ class YoutubeAPI {
     this.playerPromise.then(p => p.stopVideo())
   }
 
-  // previous() {
-
-  // }
-
-  // next() {
-
-  // }
-
   rewind() {
     this.playerPromise.then(p=> {
       let second = p.getCurrentTime();
