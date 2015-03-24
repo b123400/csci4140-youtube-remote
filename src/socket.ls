@@ -1,7 +1,11 @@
+require! 'http'
+
 first = -> it[0]
-last = -> it[*-1]
+last = -> try it[*-1]
 
 rooms = []
+addRoom = -> Number it |>-> rooms.push it if it not in rooms
+removeRoom = -> Number it |> rooms.indexOf |>-> rooms.splice it, 1 if it isnt -1
 
 export generateSessionID = -> (rooms |> last |> (+ 1)) || 0
 
@@ -16,19 +20,13 @@ export Session = (io)->
     socket.join data.room
     jointRoom := data.room
     
-    Number data.room
-    |> -> rooms.push it if it not in rooms
+    addRoom Number data.room
 
   do
     <- socket.on 'disconnect'
-
-    remove = ->
-      Number it
-      |> rooms.indexOf
-      |> rooms.splice _, 1
     
     io.sockets.adapter.rooms[jointRoom]
-    |> -> if not it or Object.keys(it) is 0 then remove jointRoom
+    |> -> if not it or Object.keys(it) is 0 then removeRoom jointRoom
 
   do
     data <- socket.on 'wantPlaylist'
@@ -49,9 +47,22 @@ export Session = (io)->
     .to target
     .emit 'replyPlaylist', playlist
 
+  do
+    videoID <- socket.on 'videoTitle'
+    
+    res <- http.get "http://gdata.youtube.com/feeds/api/videos/#{videoID}"
+    body = ""
+    res.on 'data', -> body := body + it
+
+    <- res.on 'end'
+    body
+    |> /<title\stype='text'>([^\<]*)<\/title>/g.exec
+    |> last
+    |> socket.emit 'videoTitle', _
+
   passCommand = (commandName)->
     data <- socket.on commandName
-    console.log 'someone wants to update', data
+    console.log 'someone wants to pass command', commandName, data
 
     socket.rooms
     .filter (r)-> r isnt socket.id

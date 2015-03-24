@@ -5,7 +5,7 @@ extern class YoutubeAPI {
   var currentVideoId: String;
   function elementToInsert(): js.html.Element;
   function play(?videoId:String): Void;
-  function load(videoId:String): Void;
+  function loadVideo(videoId:String, ?callback:String->Void): Void;
   function pause(): Void;
   function stop(): Void;
   function rewind(): Void;
@@ -14,8 +14,9 @@ extern class YoutubeAPI {
   function unmute(): Void;
 }
 
-extern class Socket {
-  function broadcastCommand(command:String, ?data:Dynamic):Void;
+extern class SocketManager {
+  static var client:SocketManager;
+  function getVideoTitle(videoID:String, callback:(String->Void)):Void;
 }
 
 class ArrayExtension {
@@ -98,7 +99,7 @@ class Button {
     if (Control.isDesktopMode()) {
       this.clicked(e);
     } else {
-      var client = cast(untyped js.Browser.window.client, Socket);
+      var client = untyped js.Browser.window.client;
       client.broadcastCommand(this.command());
     }
   }
@@ -153,8 +154,8 @@ class StopButton extends Button {
   }
 
   override function clicked(e:js.html.Event):Void {
+    YoutubeAPI.shared.loadVideo(Control.playlist.videos[0].videoID);
     YoutubeAPI.shared.stop();
-    YoutubeAPI.shared.load(Control.playlist.videos[0].videoID);
   }
 }
 
@@ -258,23 +259,35 @@ class UnmuteButton extends Button {
 
 class Video {
   public var videoID (default, null) : String;
-  public var name (default, null) : String;
+  public var name (default, set) : String;
   public var element (default, null) : js.html.Element;
 
   public function new(videoID:String, name:String) {
     this.videoID = videoID;
-    this.name = name;
     this.element = js.Browser.window.document.createElement("div");
-    this.element.innerHTML = '$name / $videoID';
     this.element.addEventListener('click', play);
+    this.name = name;
   }
 
   function play():Void {
     YoutubeAPI.shared.play(videoID);
   }
 
+  function set_name(newName:String):String {
+    this.name = newName;
+    this.makeElementContent();
+    return newName;
+  }
+
+  function makeElementContent() {
+    this.element.innerHTML = '$name / $videoID';
+  }
+
   function toJSON() {
-    return this.videoID;
+    return {
+      id : this.videoID,
+      name : name
+    }
   }
 }
 
@@ -288,8 +301,15 @@ class PlayList {
   }
 
   public function addVideoByID(videoID:String):Void {
-    var newVideo = new Video(videoID, "title");
-    this.addVideo(newVideo);
+    // Loading
+    SocketManager.client.getVideoTitle(videoID, function(title:String){
+      if (title == null) {
+        js.Browser.window.alert("Wrong youtube video id");
+        return;
+      }
+      var newVideo = new Video(videoID, title);
+      this.addVideo(newVideo);
+    });
   }
 
   public function addVideo(newVideo:Video):Void {
@@ -298,9 +318,9 @@ class PlayList {
     this.playlistUpdated();
   }
 
-  public function importVideos(videoIDs:Array<String>) {
-    this.videos = videoIDs.map(function(videoID){
-      return new Video(videoID, "title");
+  public function importVideos(videos) {
+    this.videos = videos.map(function(video){
+      return new Video(video.id, video.name);
     });
     this.reloadElement();
   }

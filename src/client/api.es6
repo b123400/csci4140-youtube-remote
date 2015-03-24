@@ -30,16 +30,26 @@ class YoutubeAPI {
     return element;
   }
 
-  loadVideo(videoId) {
+  loadVideo(videoId, callback) {
     this.currentVideoId = videoId;
     return new Promise((resolve, reject)=>{
+      let player = null;
+      let called = false;
       let changed = (event)=> {
-        console.log("changed ",event.data);
+        if (called) return;
+        if (event.data == 1) {
+          called = true; // become remove event listener doesn't work, thank you google
+          if (callback) {
+            callback(player.getVideoData().title);
+          }
+        }
       };
       this.playerPromise.then(p=>{
+        player = p;
         p.loadVideoById(videoId);
         p.addEventListener('onStateChange', changed);
       });
+
     });
   }
 
