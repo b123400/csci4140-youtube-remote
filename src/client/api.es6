@@ -26,7 +26,7 @@ class YoutubeAPI {
   createElement() {
     let element = document.createElement("div");
     element.className = "youtube player";
-    element.id = "player-div"
+    element.id = "player-div";
     return element;
   }
 

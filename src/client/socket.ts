@@ -8,7 +8,7 @@ interface Socket {
 declare var io: (url?:string)=> Socket;
 declare var Control : {
   playlist : Playlist
-  applyCommand(command:string):void;
+  applyCommand(command:string, data?:string):void;
 }
 
 interface Playlist {
@@ -51,7 +51,7 @@ module SocketManager {
       io.on('updatePlaylist', (p)=>this.updatePlaylist(p));
 
       ['play','pause','stop','next','previous','rewind','fastforward','mute','unmute']
-      .forEach (c=>io.on(c, ()=> Control.applyCommand(c)));
+      .forEach (c=>io.on(c, (data)=> Control.applyCommand(c, data)));
     }
 
     requestPlaylist():void {

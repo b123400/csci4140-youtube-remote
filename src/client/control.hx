@@ -44,7 +44,11 @@ class Control {
     return untyped js.Browser.window.document.body.offsetWidth >= 992;
   }
 
-  public static function applyCommand(command:String) {
+  public static function applyCommand(command:String, ?option:String) {
+    if (command == "play" && option != null) {
+      YoutubeAPI.shared.play(option);
+      return;
+    }
     for (button in Control.buttons) {
       if (button.command() == command) {
         button.clicked(null);
@@ -69,7 +73,8 @@ class Control {
     ];
     global.buttons = Control.buttons;
 
-    var wrapper = js.Browser.window.document.getElementsByTagName("body")[0];
+    var wrapper = js.Browser.window.document.getElementsByClassName("player-wrapper")[0];
+    var body = js.Browser.window.document.getElementsByTagName("body")[0];
     wrapper.appendChild(YoutubeAPI.shared.elementToInsert());
     
     var buttonWrapper = js.Browser.window.document.createElement("div");
@@ -78,7 +83,7 @@ class Control {
       buttonWrapper.appendChild(button.element);
     }
     wrapper.appendChild(buttonWrapper);
-    wrapper.appendChild(playlist.element);
+    body.appendChild(playlist.element);
     playlist.reloadElement();
   }
 }
@@ -89,10 +94,18 @@ class Button {
   public function new() {
     this.element = js.Browser.window.document.createElement("div");
     this.element.addEventListener('click', this.clickHandler);
+    this.element.className = this.command();
   }
 
   function setDisplayText(text:String):Void {
     this.element.innerHTML = text;
+  }
+
+  function prependElement(tagName:String, className:String):js.html.Element {
+    var newElement = js.Browser.window.document.createElement(tagName);
+    newElement.className = className;
+    this.element.insertBefore(newElement, this.element.firstChild);
+    return newElement;
   }
 
   function clickHandler(e:js.html.Event):Void {
@@ -117,6 +130,7 @@ class PlayButton extends Button {
   public function new() {
     super();
     this.setDisplayText("Play");
+    this.prependElement("i","fa fa-play");
   }
 
   override function command():String {
@@ -132,6 +146,7 @@ class PauseButton extends Button {
   public function new() {
     super();
     this.setDisplayText("Pause");
+    this.prependElement("i","fa fa-pause");
   }
 
   override function command():String {
@@ -147,6 +162,7 @@ class StopButton extends Button {
   public function new() {
     super();
     this.setDisplayText("Stop");
+    this.prependElement("i","fa fa-stop");
   }
 
   override function command():String {
@@ -163,6 +179,7 @@ class PreviousButton extends Button {
   public function new() {
     super();
     this.setDisplayText("Previous");
+    this.prependElement("i","fa fa-fast-backward");
   }
 
   override function command():String {
@@ -182,6 +199,7 @@ class NextButton extends Button {
   public function new() {
     super();
     this.setDisplayText("Next");
+    this.prependElement("i","fa fa-fast-forward");
   }
 
   override function command():String {
@@ -201,6 +219,7 @@ class RewindButton extends Button {
   public function new() {
     super();
     this.setDisplayText("Rewind");
+    this.prependElement("i","fa fa-backward");
   }
 
   override function command():String {
@@ -216,6 +235,7 @@ class FastForwardButton extends Button {
   public function new() {
     super();
     this.setDisplayText("Fast forward");
+    this.prependElement("i","fa fa-forward");
   }
 
   override function command():String {
@@ -231,6 +251,7 @@ class MuteButton extends Button {
   public function new() {
     super();
     this.setDisplayText("Mute");
+    this.prependElement("i","fa fa-volume-off");
   }
 
   override function command():String {
@@ -246,6 +267,7 @@ class UnmuteButton extends Button {
   public function new() {
     super();
     this.setDisplayText("Unmute");
+    this.prependElement("i","fa fa-volume-up");
   }
 
   override function command():String {
@@ -270,7 +292,12 @@ class Video {
   }
 
   function play():Void {
-    YoutubeAPI.shared.play(videoID);
+    if (Control.isDesktopMode()) {
+      YoutubeAPI.shared.play(videoID);
+      } else {
+        var client = untyped js.Browser.window.client;
+        client.broadcastCommand("play", videoID);
+      }
   }
 
   function set_name(newName:String):String {
@@ -298,6 +325,7 @@ class PlayList {
   public function new() {
     this.videos = [];
     this.element = js.Browser.window.document.createElement("div");
+    this.element.className = "playList";
   }
 
   public function addVideoByID(videoID:String):Void {
@@ -348,12 +376,15 @@ class PlayList {
     for (video in this.videos) {
       this.element.appendChild(video.element);
     }
+    var text = js.Browser.window.document.createElement("p");
+    text.innerHTML = "Add video by video id:";
     var input = cast(js.Browser.window.document.createElement("input"), js.html.InputElement);
     var okButton = js.Browser.window.document.createElement("button");
     okButton.innerHTML = "ok";
     okButton.addEventListener('click', function(){
       this.addVideoByID(input.value);
     });
+    this.element.appendChild(text);
     this.element.appendChild(input);
     this.element.appendChild(okButton);
   }

@@ -14,6 +14,7 @@ app.get '/session/:id', (req, res)->
   res.sendFile "#{__dirname}/client/session.html"
 
 app.use '/client', express.static "#{__dirname}/client"
+app.use '/fonts', express.static "#{__dirname}/client/fonts"
 
 Session io
 

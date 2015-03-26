@@ -1,0 +1,65 @@
+.player-wrapper {
+  float: left;
+  width: 70%;
+  max-width: 640px;
+}
+@media only screen and (max-width: 768px), only screen and (min-width: 768px) and (max-width: 992px) {
+  .player-wrapper .player {
+    display: none;
+  }
+}
+.clickable {
+  border: solid 1px #eaeaea;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 5px;
+  cursor: pointer;
+}
+.clickable:hover {
+  background: #eee;
+  border: solid 1px #ddd;
+}
+.buttons {
+  height: 100px;
+  display: block;
+  padding-top: 20px;
+}
+.buttons div {
+  border: solid 1px #eaeaea;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 5px;
+  cursor: pointer;
+  float: left;
+}
+.buttons div:hover {
+  background: #eee;
+  border: solid 1px #ddd;
+}
+@media only screen and (max-width: 768px) {
+  .buttons div i.fa {
+    display: none;
+  }
+}
+.playList {
+  width: 28%;
+  margin-left: 2%;
+  float: left;
+}
+.playList div {
+  border: solid 1px #eaeaea;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 5px;
+  cursor: pointer;
+}
+.playList div:hover {
+  background: #eee;
+  border: solid 1px #ddd;
+}
+@media only screen and (max-width: 768px), only screen and (min-width: 768px) and (max-width: 992px) {
+  .playList {
+    width: 100%;
+    margin-left: 0;
+  }
+}
