@@ -86,6 +86,11 @@ class Control {
     wrapper.appendChild(buttonWrapper);
     body.appendChild(playlist.element);
     playlist.reloadElement();
+
+    var qrcode = cast(js.Browser.window.document.createElement("img"), js.html.ImageElement);
+    qrcode.src = "https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl="+js.Browser.window.location.href;
+    qrcode.className = "qrcode";
+    body.appendChild(qrcode);
   }
 }
 
