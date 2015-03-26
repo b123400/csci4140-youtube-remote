@@ -8,17 +8,6 @@
     display: none;
   }
 }
-.clickable {
-  border: solid 1px #eaeaea;
-  padding: 10px;
-  border-radius: 5px;
-  margin: 5px;
-  cursor: pointer;
-}
-.clickable:hover {
-  background: #eee;
-  border: solid 1px #ddd;
-}
 .buttons {
   height: 100px;
   display: block;
@@ -33,8 +22,8 @@
   float: left;
 }
 .buttons div:hover {
-  background: #eee;
-  border: solid 1px #ddd;
+  background: #eeeeee;
+  border: solid 1px #dddddd;
 }
 @media only screen and (max-width: 768px) {
   .buttons div i.fa {
@@ -52,10 +41,29 @@
   border-radius: 5px;
   margin: 5px;
   cursor: pointer;
+  position: relative;
 }
 .playList div:hover {
-  background: #eee;
-  border: solid 1px #ddd;
+  background: #eeeeee;
+  border: solid 1px #dddddd;
+}
+.playList div div.close-button {
+  border: solid 1px #eaeaea;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 5px;
+  cursor: pointer;
+  width: 20px;
+  text-align: center;
+  height: 20px;
+  padding: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.playList div div.close-button:hover {
+  background: #eecccc;
+  border: solid 1px red;
 }
 @media only screen and (max-width: 768px), only screen and (min-width: 768px) and (max-width: 992px) {
   .playList {

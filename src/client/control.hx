@@ -45,6 +45,7 @@ class Control {
   }
 
   public static function applyCommand(command:String, ?option:String) {
+    if (!Control.isDesktopMode()) return;
     if (command == "play" && option != null) {
       YoutubeAPI.shared.play(option);
       return;
@@ -239,7 +240,7 @@ class FastForwardButton extends Button {
   }
 
   override function command():String {
-    return "fastForward";
+    return "fastforward";
   }
 
   override function clicked(e:js.html.Event):Void {
@@ -283,6 +284,7 @@ class Video {
   public var videoID (default, null) : String;
   public var name (default, set) : String;
   public var element (default, null) : js.html.Element;
+  public var closeButtonElement (default, null): js.html.Element;
 
   public function new(videoID:String, name:String) {
     this.videoID = videoID;
@@ -308,6 +310,17 @@ class Video {
 
   function makeElementContent() {
     this.element.innerHTML = '$name / $videoID';
+
+    if (this.closeButtonElement == null) {
+      this.closeButtonElement = js.Browser.window.document.createElement("div");
+      this.closeButtonElement.innerHTML = "x";
+      this.closeButtonElement.className = "close-button";
+      this.closeButtonElement.addEventListener("click", function(e:js.html.Event){
+        e.stopPropagation();
+        Control.playlist.removeVideo(this);
+      });
+    }
+    this.element.appendChild(this.closeButtonElement);
   }
 
   function toJSON() {
@@ -376,6 +389,12 @@ class PlayList {
     for (video in this.videos) {
       this.element.appendChild(video.element);
     }
+    var clearButton = js.Browser.window.document.createElement("button");
+    clearButton.innerHTML = "Clear all videos";
+    clearButton.addEventListener("click", function(){
+      this.clearAllVideos();
+    });
+
     var text = js.Browser.window.document.createElement("p");
     text.innerHTML = "Add video by video id:";
     var input = cast(js.Browser.window.document.createElement("input"), js.html.InputElement);
@@ -384,6 +403,8 @@ class PlayList {
     okButton.addEventListener('click', function(){
       this.addVideoByID(input.value);
     });
+
+    this.element.appendChild(clearButton);
     this.element.appendChild(text);
     this.element.appendChild(input);
     this.element.appendChild(okButton);

@@ -20,7 +20,7 @@
   }
 }
 
-.clickable {
+.clickable (@color:#eee, @border-color: #ddd) {
   border: solid 1px #eaeaea;
   padding: 10px;
   border-radius: 5px;
@@ -28,8 +28,8 @@
   cursor: pointer;
 
   &:hover {
-    background: #eee;
-    border: solid 1px #ddd;
+    background: @color;
+    border: solid 1px @border-color;
   }
 }
 
@@ -57,6 +57,18 @@
 
   div {
     .clickable();
+    position: relative;
+
+    div.close-button {
+      .clickable(@color:#eecccc, @border-color:red);
+      width: 20px;
+      text-align: center;
+      height: 20px;
+      padding: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
   }
 
   @media @phone, @tablet {
