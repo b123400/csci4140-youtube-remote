@@ -16,8 +16,8 @@ Client side:
 - socket.io and cache: Type Script
 
 And also:
-Jade --> HTML
-LESS --> CSS
+- Jade --> HTML
+- LESS --> CSS
 
 Try:
 ```
